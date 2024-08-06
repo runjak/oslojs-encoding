@@ -2,8 +2,10 @@ import { expect, test } from "vitest";
 import {
 	decodeBase64,
 	decodeBase64IgnorePadding,
+	decodeBase64urlIgnorePadding,
 	encodeBase64,
-	encodeBase64NoPadding
+	encodeBase64NoPadding,
+	encodeBase64urlNoPadding
 } from "./base64.js";
 
 test("encodeBase64()", () => {
@@ -58,4 +60,54 @@ test("decodeBase64() throws on invalid padding", () => {
 	expect(() => decodeBase64("qqqqq===")).toThrowError();
 	expect(() => decodeBase64("qqqq====")).toThrowError();
 	expect(() => decodeBase64("qqqqq=qq")).toThrowError();
+});
+
+test("encodeBase64urlNoPadding should be replaceable with Buffer methods", () => {
+	for (let i = 1; i <= 100; i++) {
+		const bytes = new Uint8Array(i);
+		crypto.getRandomValues(bytes);
+
+		const oslo = encodeBase64urlNoPadding(bytes);
+		const node = Buffer.from(bytes).toString("base64url");
+
+		expect(oslo).toStrictEqual(node);
+	}
+});
+
+test("decodeBase64urlIgnorePadding should be replaceable with Buffer methods", () => {
+	for (let i = 1; i <= 100; i++) {
+		const bytes = new Uint8Array(i);
+		crypto.getRandomValues(bytes);
+		const input = Buffer.from(bytes).toString("base64url");
+
+		const oslo = decodeBase64urlIgnorePadding(input);
+		const node = new Uint8Array(Buffer.from(input, "base64url"));
+
+		expect(oslo).toStrictEqual(node);
+	}
+});
+
+test("encodeBase64 should be replaceable with Buffer methods", () => {
+	for (let i = 1; i <= 100; i++) {
+		const bytes = new Uint8Array(i);
+		crypto.getRandomValues(bytes);
+
+		const oslo = encodeBase64(bytes);
+		const node = Buffer.from(bytes).toString("base64");
+
+		expect(oslo).toStrictEqual(node);
+	}
+});
+
+test("decodeBase64 should be replaceable with Buffer methods", () => {
+	for (let i = 1; i <= 100; i++) {
+		const bytes = new Uint8Array(i);
+		crypto.getRandomValues(bytes);
+		const input = encodeBase64(bytes);
+
+		const oslo = decodeBase64(input);
+		const node = new Uint8Array(Buffer.from(input, "base64"));
+
+		expect(oslo).toStrictEqual(node);
+	}
 });
